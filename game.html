@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>GAME</title>
+<style>
+canvas {
+border:1px solid #000000;
+background-color: #e7d8d8;
+}
+</style>
+<script>
+
+var pieces = []
+var p;
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min); }
+
+let br_gen = 0;
+let br_hit = 0;
+let mp = {x:0 , y:0}
+
+br_gen = getRandomInt(1,7);
+let boje = ["red", "blue", "green", "yellow", "orange", "violet"]
+
+function startGame() {
+br_hit = 0;
+let x = 10;
+let y = 10;
+for (let i = 0; i < br_gen; i++) {
+    x += getRandomInt(5,450)
+    y += getRandomInt(5,240)
+    let boja = getRandomInt(0,6)
+    let sx = getRandomInt(1,4)
+    let sy = getRandomInt(1,4)
+    p = new component(30, 30, boje[boja], x, y, sx, sy);
+    x = 10;
+    y = 10;
+    pieces.push(p);
+}
+myGameArea.start();
+}
+
+var myGameArea = {
+canvas : document.createElement("canvas"),
+start : function() {
+this.canvas.id = "myGameCanvas";
+this.canvas.width = 480;
+this.canvas.height = 270;
+this.context = this.canvas.getContext("2d");
+document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+this.frameNo = 0;
+this.interval = setInterval(updateGameArea, 10);
+},
+stop : function() {
+clearInterval(this.interval);
+},
+clear : function() {
+this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+this.context.font = "10px Arial";
+this.context.fillText("Generirani:",390,20);
+this.context.fillText(br_gen,443,20);
+this.context.fillText("Pogođeni:",390,50);
+this.context.fillText(br_hit,443,50);
+}
+
+}
+
+function component(width, height, color, x, y, sx, sy) {
+
+this.width = width;
+this.height = height;
+this.color = color;
+this.speed_x = sx;
+this.speed_y = sy;
+this.x = x;
+this.y = y;
+this.update = function() {
+ctx = myGameArea.context;
+ctx.save();
+ctx.translate(this.x, this.y);
+ctx.fillStyle = this.color;
+ctx.fillRect(this.width / -2, this.height / -2, this.width, this.height);
+ctx.restore();
+}
+
+this.newPos = function() {
+let sx = Math.random() * (3 - 0.5) + 0.5;
+let sy = Math.random() * (3 - 0.5) + 0.5;
+if (this.x - this.width / 2 < 0)
+this.speed_x = sx ;
+else if ((this.x + this.width / 2) >= myGameArea.context.canvas.width)
+this.speed_x = -sx;
+if (this.y - this.height / 2 < 0)
+this.speed_y = -sy;
+else if ((this.y + this.height / 2) >= myGameArea.context.canvas.height)
+this.speed_y = sy;
+this.x += this.speed_x;
+this.y -= this.speed_y;
+}
+
+
+
+}
+
+function pointInRect(x,y,rect){
+    if(x < rect.x || x > rect.x + rect.width || y < rect.y || y > rect.y + rect.height){
+        return false;
+    }
+    return true;
+}
+
+function pogodak(mp, rect, area){
+    if(pointInRect(mp.x,mp.y,rect)){
+       return true;
+    }
+    return false;
+}
+
+
+
+
+function updateGameArea() {
+
+myGameArea.clear();
+for(let i = 0; i< pieces.length ;i++){
+    pieces[i].newPos();
+    pieces[i].update();
+    
+   
+} 
+document.body.addEventListener("click",function(e){
+    mp.x = e.clientX;
+    mp.y = e.clientY;
+
+    for(let i = 0; i< pieces.length ;i++){
+    
+        let h = pogodak(mp,pieces[i],myGameArea);
+        if(h){
+            br_hit += 1
+            //console.log("HIT")
+            pieces.splice(i,1);
+            c = myGameArea.context;
+            c.font = "10px Arial";
+            c.clearRect(440,50-10,10,10);
+            c.fillText(br_hit,440,50);
+            if(br_gen==br_hit){
+                myGameArea.clear();
+                c = myGameArea.context;
+                c.font = "30px Arial";
+                c.fillText("Congratulations!",100,50);
+                myGameArea.stop();
+             }
+            
+        }
+        
+} 
+          
+});
+
+}
+
+
+</script>
+</head>
+<body onload="startGame()">
+</body>
+</html>
